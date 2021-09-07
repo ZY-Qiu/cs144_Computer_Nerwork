@@ -68,46 +68,6 @@ void StreamReassembler::insert(struct Segment &s) {
     _unassembled_byte += tmp.data.size();
 }
 
-/*
-void StreamReassembler::insert(struct Segment &node){
-    if (_unassembled_segment.empty()) {
-       _unassembled_segment.insert(node);
-        _unassembled_byte += node.data.size();
-        return;
-    }
-
-    struct Segment tmp;
-    auto it = _unassembled_segment.lower_bound(node);   // lower_bound返回不小于目标值的第一个对象的迭代器
-    size_t x = node.start, sz = node.data.size();
-    // 若node的左边有节点，考察是否能与左边的节点合并
-    if (it != _unassembled_segment.begin()) {
-        it--;   // 定位到左边那个节点
-        if (x < it->start + it->data.size() ) {     // 若node与左边相交（相邻不算）或被包含
-            if (x + sz <= it->start + it->data.size())      // 若被包含，直接丢弃，否则就是相交
-                return;
-            tmp.data = it->data + tmp.data.substr(it->start + it->data.size() - x);
-            tmp.start = it->start;
-            x = tmp.start; sz = tmp.data.size();
-            _unassembled_byte -= it->data.size();
-            _unassembled_segment.erase(it++);
-        } else
-            it++;
-    }
-    // 考察是否能与右边的节点合并，可能与多个节点合并
-    while (it != _unassembled_segment.end() && x + sz > it->start) {
-        if (x >= it->start && x + sz < it->start + it->data.size()) // 若被右边包含，直接丢弃
-            return;
-        if (x + sz < it->start + it->data.size()) {     // 若与右边相交
-            tmp.data += it->data.substr(x + sz - it->start);
-        }
-        _unassembled_byte -= it->data.size();   // 相交或包含右边都需要移除节点
-        _unassembled_segment.erase(it++);
-    }
-    _unassembled_segment.insert(tmp);      // tmp是检查合并后的新节点，也有可能没有发生任何合并操作
-    _unassembled_byte += tmp.data.size();
-}
-*/
-
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
@@ -153,39 +113,6 @@ JUDGE_EOF:
         _output.end_input();
     }
 }
-/*
-void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
-    struct Segment node{data, index};
-    size_t first_unread = _output.bytes_read();
-    size_t first_unassembled = _output.bytes_written();
-    size_t first_unaccept = first_unread + _capacity;
-
-    if (index + data.size() < first_unassembled || index >= first_unaccept)  // 超出这个范围不作处理
-        return;
-    if (index + data.size() > first_unaccept)
-        node.data = node.data.substr(0, first_unaccept - index); // 若超出capacity，截下要处理的部分
-
-    if (index <= first_unassembled) {   // 若新子串可以直接写入
-        _output.write(node.data.substr(first_unassembled - index));
-        // 检查缓冲区中的子串能否继续写入
-        auto it = _unassembled_segment.begin();
-        while (it->start <= _output.bytes_written()) {
-            if (it->start + it->data.size() > _output.bytes_written()) // 被包含就不用写入了
-                _output.write(it->data.substr(_output.bytes_written() - it->start));
-            _unassembled_byte -= it->data.size();
-            _unassembled_segment.erase(it++);
-        }
-    } else {
-        insert(node);    // 若不能写入则存入缓冲区
-    }
-
-    if (eof) {
-        _eof = true;
-        _pos_eof = index + data.size();
-    }
-    if (eof && _output.bytes_written() == _pos_eof)
-        _output.end_input();
-}*/
 
 size_t StreamReassembler::unassembled_bytes() const { return this->_unassembled_byte; }
 
