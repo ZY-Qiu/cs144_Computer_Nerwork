@@ -17,6 +17,37 @@
 //! segments if the retransmission timer expires.
 class TCPSender {
   private:
+    struct Timer {
+        bool running;
+        size_t total_time;
+        size_t rt_timeout;
+        Timer(size_t rt) : running(false), total_time(0), rt_timeout(rt) {}
+
+        void start() {
+            this->running = true;
+            this->total_time = 0;
+        }
+
+        void start(size_t initial_RTO) {
+            this->running = true;
+            this->total_time = 0;
+            this->rt_timeout = initial_RTO;
+        }
+
+        bool is_timeout() {
+            if (total_time >= rt_timeout)
+                return true;
+            return false;
+        }
+
+        void double_rto() { this->rt_timeout *= 2; }
+
+        void clear() {
+            this->running = false;
+            this->total_time = 0;
+            this->rt_timeout = 0;
+        }
+    };
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
 
@@ -31,6 +62,17 @@ class TCPSender {
 
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
+
+    Timer _timer;
+    uint64_t _send_base{0};
+    uint64_t _window_size{1};  // initial window size is 1
+    // when window size is zero, reset it to 1 and set this to true, to get the ack message
+    bool _window_size_zero{false};
+    bool _syn_flag{false};
+    bool _fin_flag{false};
+    std::queue<TCPSegment> _copy_segments_out{};
+    size_t _consecutive_retransmissions{0};
+    void send_segment(TCPSegment &seg);
 
   public:
     //! Initialize a TCPSender
