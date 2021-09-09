@@ -133,9 +133,10 @@ void TCPSender::send_empty_segment() {
 void TCPSender::send_segment(TCPSegment &seg) {
     seg.header().seqno = wrap(this->_next_seqno, this->_isn);
     this->_next_seqno += seg.length_in_sequence_space();
-    // payload is preprocessed outside of this function
+    // payload and part of header is preprocessed outside of this function
     this->_segments_out.push(seg);
     this->_copy_segments_out.push(seg);
+    // start timer if not running
     if (!this->_timer.running) {
         this->_timer.start(this->_initial_retransmission_timeout);
     }

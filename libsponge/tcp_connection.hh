@@ -6,6 +6,9 @@
 #include "tcp_sender.hh"
 #include "tcp_state.hh"
 
+typedef enum { listening, syn_received, fin_recv, unk } receiver_state;
+typedef enum { closed, syn_sent, syn_acked, fin_sent, fin_acked, unknown } sender_state;
+
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
   private:
@@ -20,6 +23,16 @@ class TCPConnection {
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
+
+    size_t _time_since_last_segment_received{0};
+    bool _active{true};
+    bool _send_rst{false};
+    void push_segment_out(bool send_syn = false);
+    void clean_shutdown();
+    void unclean_shutdown(bool is_rst);
+
+    receiver_state r_state();
+    sender_state s_state();
 
   public:
     //! \name "Input" interface for the writer
