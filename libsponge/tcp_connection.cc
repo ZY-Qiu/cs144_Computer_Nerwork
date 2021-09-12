@@ -48,12 +48,12 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
     }
     // if consume seqno, at least one segment will be sent back
     // segmenet should has length, syn or fin or has payload
-    
+
     if (seg.length_in_sequence_space() > 0 && (r_state() != listening) && this->_sender.segments_out().empty()) {
         // if receive syn at very beginning, should not send empty segment here
         // want to send syn + ack back
-        if((seg.header().syn && !seg.header().ack) && s_state() == closed) {}
-        else
+        if ((seg.header().syn && !seg.header().ack) && s_state() == closed) {
+        } else
             this->_sender.send_empty_segment();
     }
     push_segment_out();
@@ -77,7 +77,7 @@ void TCPConnection::tick(const size_t ms_since_last_tick) {
     if (this->_sender.consecutive_retransmissions() > TCPConfig::MAX_RETX_ATTEMPTS) {
         unclean_shutdown(true);
     }
-    push_segment_out(); // end the connection cleanly if possible, important
+    push_segment_out();  // end the connection cleanly if possible, important
 }
 
 void TCPConnection::end_input_stream() {
@@ -108,7 +108,7 @@ TCPConnection::~TCPConnection() {
 void TCPConnection::push_segment_out(bool send_syn) {
     // operate on _sender._segments_out, if _send_rst, then send rst
     // if already send syn or will send syn or just receive syn
-    if(send_syn || (s_state() != closed) || (r_state() != listening)) { 
+    if (send_syn || (s_state() != closed) || (r_state() != listening)) {
         this->_sender.fill_window();  // set up this->_sender.segments_out(), will send syn if not SYN-ed yet
     }
     TCPSegment seg;

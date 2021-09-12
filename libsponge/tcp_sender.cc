@@ -41,7 +41,8 @@ void TCPSender::fill_window() {
     if (this->_stream.eof()) {
         // eof() means buffer_empty && eof, send only fin flag
         // fin flag takes one seqno, check the window size
-        if(this->_window_size - bytes_in_flight() <= 0) return;
+        if (this->_window_size - bytes_in_flight() <= 0)
+            return;
         TCPSegment seg;
         seg.header().fin = true;
         send_segment(seg);
