@@ -63,6 +63,7 @@ optional<WrappingInt32> TCPReceiver::ackno() const {
         return wrap(absolute_seqno_64 + 1, this->_isn);
     else
         return wrap(absolute_seqno_64, this->_isn);
+    // return wrap(this->_recv_base, this->_isn);
 }
 
 size_t TCPReceiver::window_size() const {

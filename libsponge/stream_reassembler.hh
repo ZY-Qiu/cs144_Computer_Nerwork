@@ -12,7 +12,7 @@
 class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
-
+    // place to store every incoming substring
     struct Segment {
         std::string data;
         size_t start;

@@ -44,13 +44,13 @@ void StreamReassembler::insert(struct Segment &s) {
             start = tmp.start;
             size = tmp.data.size();
             _unassembled_byte -= it->data.size();
-            _unassembled_segment.erase(it++);
-        } else
-            it++;  // it still points to the right side
+            _unassembled_segment.erase(it);
+        }
+        it++;  // it still points to the right side
     }
     // if overlapping with the segment on the right hand side
     for (; it != _unassembled_segment.end() &&
-           start + size >= it->start;) {  // ecactly filling in the hole also counts, meaning ==
+           start + size >= it->start; it++) {  // ecactly filling in the hole also counts, meaning ==
         if (start >= it->start && start + size <= it->start + it->data.size())  // included in the right segment
         {
             return;
@@ -61,7 +61,7 @@ void StreamReassembler::insert(struct Segment &s) {
         }
         // tmp.data now include what is in *it
         _unassembled_byte -= it->data.size();
-        _unassembled_segment.erase(it++);
+        _unassembled_segment.erase(it);
     }
     // insert tmp to the set
     _unassembled_segment.insert(tmp);
